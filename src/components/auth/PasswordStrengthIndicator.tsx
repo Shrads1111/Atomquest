@@ -39,13 +39,9 @@ export function PasswordStrengthIndicator({ password }: { password: string }) {
         ))}
       </motion.div>
       <div className="flex items-center justify-between text-xs">
-        <span className={cn("font-medium capitalize", LABEL_COLORS[label])}>
-          {label} password
-        </span>
+        <span className={cn("font-medium capitalize", LABEL_COLORS[label])}>{label} password</span>
         {hints.length > 0 && (
-          <span className="text-muted-foreground truncate max-w-[60%]">
-            {hints[0]}
-          </span>
+          <span className="text-muted-foreground truncate max-w-[60%]">{hints[0]}</span>
         )}
       </div>
     </motion.div>

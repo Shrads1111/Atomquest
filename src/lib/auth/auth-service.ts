@@ -33,10 +33,7 @@ async function setAuthPersistence(rememberMe: boolean): Promise<void> {
   const auth = getFirebaseAuth();
   if (auth.currentUser) return;
   try {
-    await setPersistence(
-      auth,
-      rememberMe ? browserLocalPersistence : browserSessionPersistence,
-    );
+    await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
   } catch {
     // Persistence may already be set; non-fatal
   }

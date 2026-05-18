@@ -1,11 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { MetricTile, GlassCard, StatusChip, ProgressBar } from "../../components/goalsync/Primitives";
+import {
+  MetricTile,
+  GlassCard,
+  StatusChip,
+  ProgressBar,
+} from "../../components/goalsync/Primitives";
 import { Sparkline } from "../../components/goalsync/Sparkline";
 import { useAuth } from "@/contexts/auth-context";
 import { getMyGoals, saveGoalDraft, submitGoalSheet, Goal } from "@/services/goals";
 import { getMyCheckins, submitCheckin, Checkin } from "@/services/checkins";
-import { Clock, Lock, Plus, TrendingUp, AlertCircle, Bell, UserCheck, RefreshCw } from "lucide-react";
+import {
+  Clock,
+  Lock,
+  Plus,
+  TrendingUp,
+  AlertCircle,
+  Bell,
+  UserCheck,
+  RefreshCw,
+} from "lucide-react";
 import { getFirebaseDb } from "@/lib/firebase/config";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 
@@ -13,7 +27,10 @@ export const Route = createFileRoute("/_app/employee")({
   head: () => ({
     meta: [
       { title: "Workspace — GoalSync" },
-      { name: "description", content: "Employee performance workspace with live goal tracking and progress vectors." },
+      {
+        name: "description",
+        content: "Employee performance workspace with live goal tracking and progress vectors.",
+      },
     ],
   }),
   component: EmployeePage,
@@ -23,12 +40,13 @@ function EmployeePage() {
   const { user } = useAuth();
   const displayName = user?.fullName || "Employee";
   const title = user?.department || "Core R&D Engine";
-  const initials = displayName
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase() || "GS";
+  const initials =
+    displayName
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "GS";
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,9 +56,11 @@ function EmployeePage() {
   const [activities, setActivities] = useState<any[]>([]);
   const [velocityData, setVelocityData] = useState<number[]>([45, 60, 55, 70, 85, 95]);
   const [notifications, setNotifications] = useState<any[]>([]);
-  
+
   // Online/Offline handling
-  const [isOnline, setIsOnline] = useState(typeof window !== "undefined" ? window.navigator.onLine : true);
+  const [isOnline, setIsOnline] = useState(
+    typeof window !== "undefined" ? window.navigator.onLine : true,
+  );
 
   // Check-in form state
   const [selectedGoalId, setSelectedGoalId] = useState("");
@@ -68,7 +88,7 @@ function EmployeePage() {
   // REAL-TIME FIREBASE SYNCHRONIZATION
   useEffect(() => {
     if (!user?.id) return;
-    
+
     setLoading(true);
     setError(null);
     const db = getFirebaseDb();
@@ -77,69 +97,77 @@ function EmployeePage() {
     const qSheet = query(
       collection(db, "goal_sheets"),
       where("employeeId", "==", user.id),
-      where("cycleId", "==", "q3_2026")
+      where("cycleId", "==", "q3_2026"),
     );
-    const unsubscribeSheet = onSnapshot(qSheet, (snapshot) => {
-      if (!snapshot.empty) {
-        const docData = snapshot.docs[0].data();
-        setSheet({ id: snapshot.docs[0].id, ...docData });
-      } else {
-        setSheet(null);
-      }
-    }, (err) => {
-      setError(`Real-time sheet connection dropped: ${err.message}`);
-    });
+    const unsubscribeSheet = onSnapshot(
+      qSheet,
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const docData = snapshot.docs[0].data();
+          setSheet({ id: snapshot.docs[0].id, ...docData });
+        } else {
+          setSheet(null);
+        }
+      },
+      (err) => {
+        setError(`Real-time sheet connection dropped: ${err.message}`);
+      },
+    );
 
     // 2. Subscribe to Goals
-    const qGoals = query(
-      collection(db, "goals"),
-      where("employeeId", "==", user.id)
+    const qGoals = query(collection(db, "goals"), where("employeeId", "==", user.id));
+    const unsubscribeGoals = onSnapshot(
+      qGoals,
+      (snapshot) => {
+        const allGoals = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as unknown as Goal);
+        const primary = allGoals.filter((g) => !g.isShared);
+        const shared = allGoals.filter((g) => g.isShared);
+
+        setGoals(primary);
+        setSharedGoals(shared);
+
+        if (primary.length > 0 && !selectedGoalId) {
+          setSelectedGoalId(primary[0].id || "");
+        }
+        setLoading(false);
+      },
+      (err) => {
+        setError(`Real-time goals connection dropped: ${err.message}`);
+      },
     );
-    const unsubscribeGoals = onSnapshot(qGoals, (snapshot) => {
-      const allGoals = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as unknown as Goal));
-      const primary = allGoals.filter(g => !g.isShared);
-      const shared = allGoals.filter(g => g.isShared);
-      
-      setGoals(primary);
-      setSharedGoals(shared);
-      
-      if (primary.length > 0 && !selectedGoalId) {
-        setSelectedGoalId(primary[0].id || "");
-      }
-      setLoading(false);
-    }, (err) => {
-      setError(`Real-time goals connection dropped: ${err.message}`);
-    });
 
     // 3. Subscribe to Check-ins
-    const qCheckins = query(
-      collection(db, "checkins"),
-      where("employeeId", "==", user.id)
-    );
-    const unsubscribeCheckins = onSnapshot(qCheckins, (snapshot) => {
-      const activeCheckins = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as unknown as Checkin));
-      
-      // Map check-ins to dynamic Timeline Activities
-      const activeTimeline = activeCheckins.map((c: Checkin) => ({
-        id: c.id,
-        type: "checkin",
-        text: `Check-in completed with progress ${c.progress}%`,
-        time: c.ts ? c.ts.substring(5, 16) : "Just now"
-      }));
-      setActivities(activeTimeline.slice(0, 4));
+    const qCheckins = query(collection(db, "checkins"), where("employeeId", "==", user.id));
+    const unsubscribeCheckins = onSnapshot(
+      qCheckins,
+      (snapshot) => {
+        const activeCheckins = snapshot.docs.map(
+          (d) => ({ id: d.id, ...d.data() }) as unknown as Checkin,
+        );
 
-      // Map check-ins to Velocity Sparkline
-      if (activeCheckins.length > 0) {
-        const sorted = [...activeCheckins].sort((a, b) => (a.ts || "").localeCompare(b.ts || ""));
-        const vals = sorted.map(c => c.progress);
-        if (vals.length === 1) vals.unshift(0);
-        setVelocityData(vals.slice(-10));
-      } else {
-        setVelocityData([0, 0]);
-      }
-    }, (err) => {
-      setError(`Real-time check-ins connection dropped: ${err.message}`);
-    });
+        // Map check-ins to dynamic Timeline Activities
+        const activeTimeline = activeCheckins.map((c: Checkin) => ({
+          id: c.id,
+          type: "checkin",
+          text: `Check-in completed with progress ${c.progress}%`,
+          time: c.ts ? c.ts.substring(5, 16) : "Just now",
+        }));
+        setActivities(activeTimeline.slice(0, 4));
+
+        // Map check-ins to Velocity Sparkline
+        if (activeCheckins.length > 0) {
+          const sorted = [...activeCheckins].sort((a, b) => (a.ts || "").localeCompare(b.ts || ""));
+          const vals = sorted.map((c) => c.progress);
+          if (vals.length === 1) vals.unshift(0);
+          setVelocityData(vals.slice(-10));
+        } else {
+          setVelocityData([0, 0]);
+        }
+      },
+      (err) => {
+        setError(`Real-time check-ins connection dropped: ${err.message}`);
+      },
+    );
 
     // Clean up connections on unmount
     return () => {
@@ -152,21 +180,26 @@ function EmployeePage() {
   // Handle building notifications dynamically when sheet changes
   useEffect(() => {
     const baseNotifications: any[] = [
-      { id: 1, type: "reminder", text: "Quarterly check-in window closes soon. Complete all metrics updates.", tone: "amber" }
+      {
+        id: 1,
+        type: "reminder",
+        text: "Quarterly check-in window closes soon. Complete all metrics updates.",
+        tone: "amber",
+      },
     ];
     if (sheet?.status === "Approved") {
       baseNotifications.unshift({
         id: 2,
         type: "success",
         text: "Q3 Goal Sheet has been officially validated and locked.",
-        tone: "emerald" as const
+        tone: "emerald" as const,
       });
     } else if (sheet?.status === "Rework") {
       baseNotifications.unshift({
         id: 3,
         type: "comment",
-        text: `Rework Requested: "${sheet.reworkReason || 'Check weight allocations'}"`,
-        tone: "amber" as const
+        text: `Rework Requested: "${sheet.reworkReason || "Check weight allocations"}"`,
+        tone: "amber" as const,
       });
     }
     setNotifications(baseNotifications);
@@ -189,14 +222,14 @@ function EmployeePage() {
     try {
       setSubmittingCheckin(true);
       setCheckinMessage("");
-      
+
       await submitCheckin({
         goal_id: selectedGoalId,
         achieved: value,
         remarks: remarksVal,
-        status: checkinStatus
+        status: checkinStatus,
       });
-      
+
       setAchievementVal("");
       setRemarksVal("");
       setCheckinMessage("Check-in successfully recorded!");
@@ -225,10 +258,10 @@ function EmployeePage() {
   // Shared weightage adjusting handler
   const handleWeightageChange = async (id: string, newWeight: number) => {
     setSharedGoals((prev) =>
-      prev.map((sg) => (sg.id === id ? { ...sg, weightage: newWeight } : sg))
+      prev.map((sg) => (sg.id === id ? { ...sg, weightage: newWeight } : sg)),
     );
-    
-    const targetGoal = sharedGoals.find(g => g.id === id);
+
+    const targetGoal = sharedGoals.find((g) => g.id === id);
     if (targetGoal) {
       try {
         await saveGoalDraft({
@@ -240,7 +273,7 @@ function EmployeePage() {
           target: targetGoal.target,
           weightage: newWeight,
           is_shared: true,
-          shared_goal_id: targetGoal.sharedGoalId || null
+          shared_goal_id: targetGoal.sharedGoalId || null,
         });
       } catch (e) {
         console.warn("Failed to persist shared goal weight change:", e);
@@ -252,20 +285,25 @@ function EmployeePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
         <RefreshCw className="h-8 w-8 text-indigo-400 animate-spin" />
-        <div className="text-sm font-mono-metric text-indigo-200">Syncing with Secure Performance Telemetry...</div>
+        <div className="text-sm font-mono-metric text-indigo-200">
+          Syncing with Secure Performance Telemetry...
+        </div>
       </div>
     );
   }
 
   // Calculate dynamic average progress dynamically
   const totalGoalsCount = goals.length + sharedGoals.length;
-  const avgProgress = totalGoalsCount > 0
-    ? (goals.reduce((acc, curr) => acc + (curr.progress || 0), 0) +
-       sharedGoals.reduce((acc, curr) => acc + (curr.progress || 0), 0)) / totalGoalsCount
-    : 0;
+  const avgProgress =
+    totalGoalsCount > 0
+      ? (goals.reduce((acc, curr) => acc + (curr.progress || 0), 0) +
+          sharedGoals.reduce((acc, curr) => acc + (curr.progress || 0), 0)) /
+        totalGoalsCount
+      : 0;
 
   // Weightage sums check
-  const totalWeightage = goals.reduce((acc, curr) => acc + (curr.weightage || 0), 0) +
+  const totalWeightage =
+    goals.reduce((acc, curr) => acc + (curr.weightage || 0), 0) +
     sharedGoals.reduce((acc, curr) => acc + (curr.weightage || 0), 0);
 
   const locked = sheet?.lockStatus === "locked";
@@ -280,7 +318,8 @@ function EmployeePage() {
 
       {!isOnline && (
         <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs rounded-lg font-mono-metric flex items-center gap-1.5 animate-pulse">
-          <AlertCircle className="h-4 w-4" /> You are operating in offline mode. Changes will be synced when connection is restored.
+          <AlertCircle className="h-4 w-4" /> You are operating in offline mode. Changes will be
+          synced when connection is restored.
         </div>
       )}
 
@@ -289,7 +328,10 @@ function EmployeePage() {
         <div className="flex items-center gap-4">
           <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-blue-600/20 border border-indigo-500/30 grid place-items-center text-indigo-200 font-bold text-lg shadow-[0_0_20px_rgba(99,102,241,0.15)] relative shrink-0">
             {initials}
-            <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-[#090d16]" title="Active Network Node" />
+            <span
+              className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-[#090d16]"
+              title="Active Network Node"
+            />
           </div>
           <div>
             <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300 font-mono-metric">
@@ -301,13 +343,22 @@ function EmployeePage() {
 
         {/* Lock status banner */}
         <div className="flex items-center gap-2.5">
-          <div className={`px-3 py-2 rounded-lg border text-xs font-mono-metric flex items-center gap-2 ${
-            sheet?.status === "Approved" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300" :
-            sheet?.status === "Draft" ? "bg-blue-500/10 border-blue-500/20 text-blue-300" :
-            sheet?.status === "Rework" ? "bg-rose-500/10 border-rose-500/20 text-rose-300" :
-            "bg-amber-500/10 border-amber-500/20 text-amber-300"
-          }`}>
-            {sheet?.status === "Approved" ? <UserCheck className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+          <div
+            className={`px-3 py-2 rounded-lg border text-xs font-mono-metric flex items-center gap-2 ${
+              sheet?.status === "Approved"
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+                : sheet?.status === "Draft"
+                  ? "bg-blue-500/10 border-blue-500/20 text-blue-300"
+                  : sheet?.status === "Rework"
+                    ? "bg-rose-500/10 border-rose-500/20 text-rose-300"
+                    : "bg-amber-500/10 border-amber-500/20 text-amber-300"
+            }`}
+          >
+            {sheet?.status === "Approved" ? (
+              <UserCheck className="h-4 w-4" />
+            ) : (
+              <Clock className="h-4 w-4" />
+            )}
             Stage: {sheet?.status || "Draft"}
           </div>
 
@@ -317,11 +368,15 @@ function EmployeePage() {
               disabled={submittingSheet || totalWeightage !== 100}
               className={`btn-primary flex items-center gap-1.5 ${totalWeightage !== 100 ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              {submittingSheet ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
+              {submittingSheet ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Lock className="h-4 w-4" />
+              )}
               {totalWeightage !== 100 ? "Complete Weights to Lock" : "Lock & Submit Goal Sheet"}
             </button>
           )}
-          
+
           {locked && (
             <div className="px-3.5 py-2 bg-slate-900 border border-white/5 text-muted-foreground text-xs font-mono-metric flex items-center gap-1.5 rounded-lg">
               <Lock className="h-4 w-4 text-emerald-400" /> Read-Only Sheet Locked
@@ -332,12 +387,45 @@ function EmployeePage() {
 
       {/* Interactive visual metrics cards */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-        <MetricTile label="Total Goals" value={String(totalGoalsCount)} sub="Active objectives" accent="indigo" />
-        <MetricTile label="Approved Sheets" value={sheet?.status === "Approved" ? "1" : "0"} sub="Sealed locks" accent="emerald" />
-        <MetricTile label="Goals Under Review" value={sheet?.status === "Pending Review" ? String(totalGoalsCount) : "0"} sub="Review queue" accent="amber" />
-        <MetricTile label="Goals Completed" value={String(goals.filter(g => g.progress >= 100).length + sharedGoals.filter(g => g.progress >= 100).length)} sub="100% achieved" accent="emerald" />
-        <MetricTile label="Average Progress" value={`${avgProgress.toFixed(1)}%`} sub="Overall performance" accent="indigo" />
-        <MetricTile label="Total Weightage" value={`${totalWeightage}%`} sub="Must equal 100%" accent={totalWeightage === 100 ? "emerald" : "crimson"} />
+        <MetricTile
+          label="Total Goals"
+          value={String(totalGoalsCount)}
+          sub="Active objectives"
+          accent="indigo"
+        />
+        <MetricTile
+          label="Approved Sheets"
+          value={sheet?.status === "Approved" ? "1" : "0"}
+          sub="Sealed locks"
+          accent="emerald"
+        />
+        <MetricTile
+          label="Goals Under Review"
+          value={sheet?.status === "Pending Review" ? String(totalGoalsCount) : "0"}
+          sub="Review queue"
+          accent="amber"
+        />
+        <MetricTile
+          label="Goals Completed"
+          value={String(
+            goals.filter((g) => g.progress >= 100).length +
+              sharedGoals.filter((g) => g.progress >= 100).length,
+          )}
+          sub="100% achieved"
+          accent="emerald"
+        />
+        <MetricTile
+          label="Average Progress"
+          value={`${avgProgress.toFixed(1)}%`}
+          sub="Overall performance"
+          accent="indigo"
+        />
+        <MetricTile
+          label="Total Weightage"
+          value={`${totalWeightage}%`}
+          sub="Must equal 100%"
+          accent={totalWeightage === 100 ? "emerald" : "crimson"}
+        />
       </div>
 
       {/* Dynamic Notifications Banner */}
@@ -350,8 +438,8 @@ function EmployeePage() {
                 n.tone === "emerald"
                   ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.08)]"
                   : n.tone === "amber"
-                  ? "bg-amber-500/10 border-amber-500/20 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.08)]"
-                  : "bg-indigo-500/10 border-indigo-500/20 text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.08)]"
+                    ? "bg-amber-500/10 border-amber-500/20 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.08)]"
+                    : "bg-indigo-500/10 border-indigo-500/20 text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.08)]"
               }`}
             >
               <Bell className="h-4 w-4 shrink-0 mt-0.5" />
@@ -373,7 +461,10 @@ function EmployeePage() {
                 <h3 className="text-base font-bold mt-0.5">Primary Key Performance Indicators</h3>
               </div>
               {!locked && sheet?.status !== "Approved" && (
-                <Link to="/goals/new" className="btn-ghost py-1.5 px-3 text-xs flex items-center gap-1">
+                <Link
+                  to="/goals/new"
+                  className="btn-ghost py-1.5 px-3 text-xs flex items-center gap-1"
+                >
                   <Plus className="h-3.5 w-3.5" /> Draft Custom Goal
                 </Link>
               )}
@@ -440,7 +531,10 @@ function EmployeePage() {
                             {g.progress.toFixed(1)}%
                           </span>
                           <div className="w-24">
-                            <ProgressBar value={g.progress} tone={g.progress >= 80 ? "emerald" : "indigo"} />
+                            <ProgressBar
+                              value={g.progress}
+                              tone={g.progress >= 80 ? "emerald" : "indigo"}
+                            />
                           </div>
                         </div>
                       </div>
@@ -482,7 +576,7 @@ function EmployeePage() {
                           {g.title}
                         </h4>
                       </div>
-                      
+
                       {/* Interactive Weight Slider for Shared Goal */}
                       {!locked && sheet?.status !== "Approved" && (
                         <div className="flex items-center gap-3 shrink-0">
@@ -500,7 +594,7 @@ function EmployeePage() {
                           />
                         </div>
                       )}
-                      
+
                       {(locked || sheet?.status === "Approved") && (
                         <span className="text-xs text-indigo-300 font-mono-metric">
                           Weight: {g.weightage}%
@@ -534,7 +628,10 @@ function EmployeePage() {
                             {g.progress.toFixed(1)}%
                           </span>
                           <div className="w-24">
-                            <ProgressBar value={g.progress} tone={g.progress >= 80 ? "emerald" : "indigo"} />
+                            <ProgressBar
+                              value={g.progress}
+                              tone={g.progress >= 80 ? "emerald" : "indigo"}
+                            />
                           </div>
                         </div>
                       </div>
@@ -626,11 +723,13 @@ function EmployeePage() {
                   </div>
 
                   {checkinMessage && (
-                    <div className={`p-2 rounded text-[10px] font-mono-metric ${
-                      checkinMessage.startsWith("Error")
-                        ? "bg-red-500/10 border border-red-500/20 text-red-300"
-                        : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
-                    }`}>
+                    <div
+                      className={`p-2 rounded text-[10px] font-mono-metric ${
+                        checkinMessage.startsWith("Error")
+                          ? "bg-red-500/10 border border-red-500/20 text-red-300"
+                          : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
+                      }`}
+                    >
                       {checkinMessage}
                     </div>
                   )}
@@ -640,7 +739,11 @@ function EmployeePage() {
                     disabled={submittingCheckin}
                     className="w-full btn-primary text-xs py-2 px-3 justify-center flex items-center gap-1.5"
                   >
-                    {submittingCheckin ? <RefreshCw className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" />}
+                    {submittingCheckin ? (
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <TrendingUp className="h-4 w-4" />
+                    )}
                     Commit Progress Update
                   </button>
                 </form>
@@ -655,9 +758,13 @@ function EmployeePage() {
                 Weekly Velocity Trace
               </div>
               <h3 className="text-base font-bold mt-0.5">Completion Velocity Profile</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Visual representation of organizational milestone achievement speed.</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Visual representation of organizational milestone achievement speed.
+              </p>
             </div>
-            <div className="py-4"><Sparkline values={velocityData} /></div>
+            <div className="py-4">
+              <Sparkline values={velocityData} />
+            </div>
           </GlassCard>
 
           {/* Activity timeline feed */}

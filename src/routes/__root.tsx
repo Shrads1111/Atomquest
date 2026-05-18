@@ -17,12 +17,16 @@ function NotFoundComponent() {
     <div className="relative min-h-screen grid place-items-center px-4">
       <MeshBackground />
       <div className="relative glass-card p-10 max-w-md text-center">
-        <div className="font-mono-metric text-xs tracking-[0.25em] text-indigo-300 uppercase">Route Not Mapped</div>
+        <div className="font-mono-metric text-xs tracking-[0.25em] text-indigo-300 uppercase">
+          Route Not Mapped
+        </div>
         <h1 className="mt-3 text-6xl font-bold text-gradient-indigo">404</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           The requested execution node was not found in the GoalSync topology.
         </p>
-        <Link to="/" className="btn-primary mt-6 inline-flex">Return to Login Portal</Link>
+        <Link to="/" className="btn-primary mt-6 inline-flex">
+          Return to Login Portal
+        </Link>
       </div>
     </div>
   );
@@ -38,8 +42,18 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <h1 className="text-xl font-semibold">System path interrupted</h1>
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
         <div className="mt-6 flex gap-2 justify-center">
-          <button onClick={() => { router.invalidate(); reset(); }} className="btn-primary">Retry</button>
-          <Link to="/" className="btn-ghost">Home</Link>
+          <button
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+            className="btn-primary"
+          >
+            Retry
+          </button>
+          <Link to="/" className="btn-ghost">
+            Home
+          </Link>
         </div>
       </div>
     </div>
@@ -52,7 +66,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "GoalSync — Enterprise Performance Governance" },
-      { name: "description", content: "Cinematic enterprise goal-setting, governance and performance intelligence platform." },
+      {
+        name: "description",
+        content:
+          "Cinematic enterprise goal-setting, governance and performance intelligence platform.",
+      },
       { name: "theme-color", content: "#05060B" },
     ],
     links: [
@@ -74,7 +92,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head><HeadContent /></head>
+      <head>
+        <HeadContent />
+      </head>
       <body>
         {children}
         <Scripts />
@@ -88,7 +108,9 @@ import { WifiOff } from "lucide-react";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const [isOnline, setIsOnline] = useState(typeof window !== "undefined" ? window.navigator.onLine : true);
+  const [isOnline, setIsOnline] = useState(
+    typeof window !== "undefined" ? window.navigator.onLine : true,
+  );
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -119,10 +141,13 @@ function RootComponent() {
                 <WifiOff className="h-6 w-6 animate-pulse" />
               </div>
               <div>
-                <div className="font-mono-metric text-xs tracking-[0.25em] text-amber-400 uppercase">Connection Interrupted</div>
+                <div className="font-mono-metric text-xs tracking-[0.25em] text-amber-400 uppercase">
+                  Connection Interrupted
+                </div>
                 <h1 className="mt-2 text-2xl font-bold text-white/95">Corporate Network Offline</h1>
                 <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-                  GoalSync has lost telemetry connection to the cloud registry. Active sheets and check-in workspaces will automatically synchronize once connectivity is restored.
+                  GoalSync has lost telemetry connection to the cloud registry. Active sheets and
+                  check-in workspaces will automatically synchronize once connectivity is restored.
                 </p>
               </div>
               <div className="pt-2">
@@ -137,4 +162,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-

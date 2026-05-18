@@ -21,7 +21,9 @@ export function Dropzone({ onUploadSuccess }: DropzoneProps) {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
-  const [uploadState, setUploadState] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [uploadState, setUploadState] = useState<"idle" | "uploading" | "success" | "error">(
+    "idle",
+  );
   const [errorMessage, setErrorMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadTaskRef = useRef<any>(null);
@@ -91,7 +93,7 @@ export function Dropzone({ onUploadSuccess }: DropzoneProps) {
       const storage = getFirebaseStorage();
       const fileId = `${Date.now()}_${fileToUpload.name.replace(/\s+/g, "_")}`;
       const storageRef = ref(storage, `checkins/${user.id}/${fileId}`);
-      
+
       const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
       uploadTaskRef.current = uploadTask;
 
@@ -115,7 +117,7 @@ export function Dropzone({ onUploadSuccess }: DropzoneProps) {
             setErrorMessage("Failed to generate secure URL download link.");
             setUploadState("error");
           }
-        }
+        },
       );
     } catch (err: any) {
       setErrorMessage(err.message || "File upload storage context lost.");

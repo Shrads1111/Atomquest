@@ -1,11 +1,5 @@
 import { FirebaseError } from "firebase/app";
-import {
-  doc,
-  getDoc,
-  serverTimestamp,
-  setDoc,
-  type Timestamp,
-} from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, setDoc, type Timestamp } from "firebase/firestore";
 import type { AuthUser, UserProfilePayload, UserRole } from "@/lib/auth/types";
 import { getFirebaseDb } from "./config";
 

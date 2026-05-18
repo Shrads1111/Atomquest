@@ -11,7 +11,11 @@ export const Route = createFileRoute("/_app/intelligence")({
   head: () => ({
     meta: [
       { title: "Executive Intelligence — GoalSync" },
-      { name: "description", content: "Executive analytics suite with radar telemetry and predictive performance horizons." },
+      {
+        name: "description",
+        content:
+          "Executive analytics suite with radar telemetry and predictive performance horizons.",
+      },
     ],
   }),
   component: IntelligencePage,
@@ -20,10 +24,10 @@ export const Route = createFileRoute("/_app/intelligence")({
 function IntelligencePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Dynamic analytics state
   const [analytics, setAnalytics] = useState<any>(null);
-  
+
   // Downloading state
   const [downloading, setDownloading] = useState(false);
 
@@ -31,10 +35,9 @@ function IntelligencePage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const data = await getGlobalAnalytics();
       setAnalytics(data);
-
     } catch (e: any) {
       setError(e.message || "Failed to load dynamic executive intelligence.");
     } finally {
@@ -53,7 +56,10 @@ function IntelligencePage() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `GoalSync_Strategic_Performance_Report.${format === "csv" ? "csv" : "xlsx"}`);
+      link.setAttribute(
+        "download",
+        `GoalSync_Strategic_Performance_Report.${format === "csv" ? "csv" : "xlsx"}`,
+      );
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -68,53 +74,63 @@ function IntelligencePage() {
     return <IntelligenceSkeleton />;
   }
 
-
   // Dynamic Radar mapping
   const totalGoals = analytics?.totalGoalsCount || 1;
   const radarSeries = analytics?.thrustDistribution?.map((d: any) => ({
     axis: d.area.substring(0, 18),
-    value: totalGoals > 0 ? d.count / totalGoals : 0.8
+    value: totalGoals > 0 ? d.count / totalGoals : 0.8,
   })) || [
     { axis: "System Reliability", value: 0.92 },
     { axis: "Operational Efficiency", value: 0.84 },
     { axis: "Compliance & Risk", value: 0.96 },
-    { axis: "Innovation", value: 0.88 }
+    { axis: "Innovation", value: 0.88 },
   ];
 
   // Dynamic Trend mapping
   const trendSeries = analytics?.qoqTrends?.map((t: any) => ({
     week: t.quarter,
-    value: t.completionRate
+    value: t.completionRate,
   })) || [
     { week: "Q1 2026", value: 70.0 },
     { week: "Q2 2026", value: 82.0 },
-    { week: "Q3 2026", value: 88.5 }
+    { week: "Q3 2026", value: 88.5 },
   ];
 
-  const currentPredictiveHorizon = trendSeries.length > 0 ? trendSeries[trendSeries.length - 1].value : 94.2;
+  const currentPredictiveHorizon =
+    trendSeries.length > 0 ? trendSeries[trendSeries.length - 1].value : 94.2;
 
   return (
     <div className="space-y-8">
       <div className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300 font-mono-metric">Executive Telemetrics Center</div>
+          <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300 font-mono-metric">
+            Executive Telemetrics Center
+          </div>
           <h1 className="text-2xl font-bold mt-1">Organizational Performance Intelligence</h1>
         </div>
         <div className="flex items-center gap-2">
-          <button 
+          <button
             disabled={downloading}
             onClick={() => handleDownload("csv")}
             className="btn-ghost text-xs flex items-center gap-1.5"
           >
-            {downloading ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />} 
+            {downloading ? (
+              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Download className="h-3.5 w-3.5" />
+            )}
             Export .CSV
           </button>
-          <button 
+          <button
             disabled={downloading}
             onClick={() => handleDownload("excel")}
             className="btn-primary text-xs flex items-center gap-1.5"
           >
-            {downloading ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />} 
+            {downloading ? (
+              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="h-3.5 w-3.5" />
+            )}
             Compile .XLSX
           </button>
         </div>
@@ -145,12 +161,18 @@ function IntelligencePage() {
             </div>
             <StatusChip tone="indigo">{radarSeries.length} axes</StatusChip>
           </div>
-          <div className="mt-2"><RadarChart series={radarSeries} /></div>
+          <div className="mt-2">
+            <RadarChart series={radarSeries} />
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
             {radarSeries.map((s: any) => (
               <div key={s.axis} className="glass-elevated p-2 text-center">
-                <div className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground font-mono-metric truncate">{s.axis}</div>
-                <div className="text-sm font-bold font-mono-metric text-indigo-200 mt-0.5">{(s.value * 100).toFixed(0)}%</div>
+                <div className="text-[9px] uppercase tracking-[0.16em] text-muted-foreground font-mono-metric truncate">
+                  {s.axis}
+                </div>
+                <div className="text-sm font-bold font-mono-metric text-indigo-200 mt-0.5">
+                  {(s.value * 100).toFixed(0)}%
+                </div>
               </div>
             ))}
           </div>
@@ -164,7 +186,9 @@ function IntelligencePage() {
             </div>
             <StatusChip tone="emerald">+18.2% Cycle average</StatusChip>
           </div>
-          <div className="mt-3"><TrendChart data={trendSeries} predicted={currentPredictiveHorizon} /></div>
+          <div className="mt-3">
+            <TrendChart data={trendSeries} predicted={currentPredictiveHorizon} />
+          </div>
 
           <div className="mt-4 rounded-lg p-4 border border-indigo-500/30 bg-indigo-500/5">
             <div className="flex items-start gap-3">
@@ -176,7 +200,12 @@ function IntelligencePage() {
                   GoalSync Intelligence · Predictive Horizon
                 </div>
                 <p className="text-sm mt-1 leading-relaxed">
-                  Predictive vectors forecast this unit is tracking toward a <span className="text-emerald-300 font-semibold">{currentPredictiveHorizon.toFixed(1)}% achievement</span> by cycle closure, outperforming segment baseline by <span className="text-emerald-300 font-semibold">+4.1%</span>.
+                  Predictive vectors forecast this unit is tracking toward a{" "}
+                  <span className="text-emerald-300 font-semibold">
+                    {currentPredictiveHorizon.toFixed(1)}% achievement
+                  </span>{" "}
+                  by cycle closure, outperforming segment baseline by{" "}
+                  <span className="text-emerald-300 font-semibold">+4.1%</span>.
                 </p>
               </div>
             </div>
@@ -190,7 +219,9 @@ function IntelligencePage() {
 function FilterSelect({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono-metric mb-1.5">{label}</div>
+      <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono-metric mb-1.5">
+        {label}
+      </div>
       <button className="w-full input-cinematic text-left flex items-center justify-between cursor-pointer">
         <span className="text-sm truncate">{value}</span>
         <span className="text-muted-foreground">▾</span>
@@ -248,4 +279,3 @@ function IntelligenceSkeleton() {
     </div>
   );
 }
-

@@ -17,11 +17,7 @@ interface LogoutConfirmDialogProps {
   onConfirm: () => Promise<void>;
 }
 
-export function LogoutConfirmDialog({
-  open,
-  onOpenChange,
-  onConfirm,
-}: LogoutConfirmDialogProps) {
+export function LogoutConfirmDialog({ open, onOpenChange, onConfirm }: LogoutConfirmDialogProps) {
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {

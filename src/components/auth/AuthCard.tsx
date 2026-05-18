@@ -43,11 +43,7 @@ export function AuthCard() {
         </p>
       </div>
 
-      <Tabs
-        value={tab}
-        onValueChange={(v) => setTab(v as "login" | "register")}
-        className="w-full"
-      >
+      <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "register")} className="w-full">
         <TabsList className="grid w-full grid-cols-2 h-11 p-1 bg-muted/50 mb-6">
           <TabsTrigger
             value="login"

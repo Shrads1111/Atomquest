@@ -17,9 +17,7 @@ export const registerSchema = z
       .min(2, "Full name must be at least 2 characters")
       .max(80, "Full name is too long"),
     email: z.string().email("Enter a valid work email"),
-    employeeId: z
-      .string()
-      .regex(/^[A-Za-z0-9-]{4,20}$/, "Employee ID format: GS-10482"),
+    employeeId: z.string().regex(/^[A-Za-z0-9-]{4,20}$/, "Employee ID format: GS-10482"),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
@@ -44,9 +42,7 @@ export const googleProfileSchema = z.object({
     .min(2, "Full name must be at least 2 characters")
     .max(80, "Full name is too long"),
   email: z.string().email("Enter a valid work email"),
-  employeeId: z
-    .string()
-    .regex(/^[A-Za-z0-9-]{4,20}$/, "Employee ID format: GS-10482"),
+  employeeId: z.string().regex(/^[A-Za-z0-9-]{4,20}$/, "Employee ID format: GS-10482"),
   department: z.string().min(1, "Select your department"),
   role: z.enum(["employee", "manager", "admin"]),
 });

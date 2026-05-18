@@ -16,8 +16,7 @@ export function RadarChart({
   };
   const ringLevels = [0.25, 0.5, 0.75, 1];
   const dataPts = series.map((s, i) => point(i, s.value));
-  const dataPath =
-    dataPts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x},${y}`).join(" ") + " Z";
+  const dataPath = dataPts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x},${y}`).join(" ") + " Z";
 
   return (
     <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-auto">

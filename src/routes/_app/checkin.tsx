@@ -13,7 +13,11 @@ export const Route = createFileRoute("/_app/checkin")({
   head: () => ({
     meta: [
       { title: "Quarterly Check-In — GoalSync" },
-      { name: "description", content: "Collaborative quarterly check-in workspace coordinating metrics with supervisor reviews." },
+      {
+        name: "description",
+        content:
+          "Collaborative quarterly check-in workspace coordinating metrics with supervisor reviews.",
+      },
     ],
   }),
   component: CheckinPage,
@@ -35,10 +39,10 @@ function CheckinPage() {
   // Core dynamic datasets
   const [goals, setGoals] = useState<Goal[]>([]);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
-  
+
   // Selected goal tracking
   const [selectedGoalId, setSelectedGoalId] = useState("");
-  
+
   // New check-in state
   const [achievementVal, setAchievementVal] = useState("");
   const [remarksVal, setRemarksVal] = useState("");
@@ -48,7 +52,9 @@ function CheckinPage() {
   const [checkinMessage, setCheckinMessage] = useState("");
 
   // Online/Offline handling
-  const [isOnline, setIsOnline] = useState(typeof window !== "undefined" ? window.navigator.onLine : true);
+  const [isOnline, setIsOnline] = useState(
+    typeof window !== "undefined" ? window.navigator.onLine : true,
+  );
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -71,33 +77,39 @@ function CheckinPage() {
     const db = getFirebaseDb();
 
     // 1. Subscribe to Goals (Real-Time)
-    const qGoals = query(
-      collection(db, "goals"),
-      where("employeeId", "==", user.id)
+    const qGoals = query(collection(db, "goals"), where("employeeId", "==", user.id));
+    const unsubscribeGoals = onSnapshot(
+      qGoals,
+      (snapshot) => {
+        const activeGoals = snapshot.docs.map(
+          (d) => ({ id: d.id, ...d.data() }) as unknown as Goal,
+        );
+        setGoals(activeGoals);
+
+        if (activeGoals.length > 0 && !selectedGoalId) {
+          setSelectedGoalId(activeGoals[0].id || "");
+        }
+        setLoading(false);
+      },
+      (err) => {
+        setError(`Goals sync dropped: ${err.message}`);
+      },
     );
-    const unsubscribeGoals = onSnapshot(qGoals, (snapshot) => {
-      const activeGoals = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as unknown as Goal));
-      setGoals(activeGoals);
-      
-      if (activeGoals.length > 0 && !selectedGoalId) {
-        setSelectedGoalId(activeGoals[0].id || "");
-      }
-      setLoading(false);
-    }, (err) => {
-      setError(`Goals sync dropped: ${err.message}`);
-    });
 
     // 2. Subscribe to Check-ins (Real-Time)
-    const qCheckins = query(
-      collection(db, "checkins"),
-      where("employeeId", "==", user.id)
+    const qCheckins = query(collection(db, "checkins"), where("employeeId", "==", user.id));
+    const unsubscribeCheckins = onSnapshot(
+      qCheckins,
+      (snapshot) => {
+        const checkinRes = snapshot.docs.map(
+          (d) => ({ id: d.id, ...d.data() }) as unknown as Checkin,
+        );
+        setCheckins(checkinRes);
+      },
+      (err) => {
+        setError(`Checkins sync dropped: ${err.message}`);
+      },
     );
-    const unsubscribeCheckins = onSnapshot(qCheckins, (snapshot) => {
-      const checkinRes = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as unknown as Checkin));
-      setCheckins(checkinRes);
-    }, (err) => {
-      setError(`Checkins sync dropped: ${err.message}`);
-    });
 
     return () => {
       unsubscribeGoals();
@@ -127,7 +139,7 @@ function CheckinPage() {
         achieved: val,
         remarks: remarksVal,
         evidence_link: evidenceUrl || undefined,
-        status: val >= (selectedGoal?.target || 100) ? "Completed" : "On Track"
+        status: val >= (selectedGoal?.target || 100) ? "Completed" : "On Track",
       });
 
       setAchievementVal("");
@@ -152,24 +164,31 @@ function CheckinPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
         <RefreshCw className="h-8 w-8 text-indigo-400 animate-spin" />
-        <div className="text-sm font-mono-metric text-indigo-200">Syncing Check-in Workspace Environment...</div>
+        <div className="text-sm font-mono-metric text-indigo-200">
+          Syncing Check-in Workspace Environment...
+        </div>
       </div>
     );
   }
 
   // Get active selected goal
-  const selectedGoal = goals.find(g => g.id === selectedGoalId) || goals[0];
+  const selectedGoal = goals.find((g) => g.id === selectedGoalId) || goals[0];
 
   // Map qualitative performance band based on progress score
   const progressPercent = selectedGoal?.progress ?? 0;
-  const currentBandId = 
-    progressPercent < 50 ? "crit" :
-    progressPercent < 80 ? "appr" :
-    progressPercent <= 100 ? "align" :
-    progressPercent <= 120 ? "exc" : "expand";
+  const currentBandId =
+    progressPercent < 50
+      ? "crit"
+      : progressPercent < 80
+        ? "appr"
+        : progressPercent <= 100
+          ? "align"
+          : progressPercent <= 120
+            ? "exc"
+            : "expand";
 
   // Filter check-in history threads for selected goal
-  const selectedCheckins = checkins.filter(c => c.goalId === selectedGoal?.id);
+  const selectedCheckins = checkins.filter((c) => c.goalId === selectedGoal?.id);
 
   return (
     <div className="space-y-8">
@@ -187,7 +206,9 @@ function CheckinPage() {
 
       <div className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300 font-mono-metric">Quarterly Progress Hub</div>
+          <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300 font-mono-metric">
+            Quarterly Progress Hub
+          </div>
           <h1 className="text-2xl font-bold mt-1">Performance Check-In Workspace</h1>
         </div>
 
@@ -199,7 +220,7 @@ function CheckinPage() {
               onChange={(e) => setSelectedGoalId(e.target.value)}
               className="bg-slate-950 border border-white/10 text-white rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none"
             >
-              {goals.map(g => (
+              {goals.map((g) => (
                 <option key={g.id} value={g.id}>
                   {g.title.substring(0, 40)}...
                 </option>
@@ -221,14 +242,25 @@ function CheckinPage() {
               <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300 font-mono-metric">
                 Panel A · Metrics Radar Engine
               </div>
-              <StatusChip tone={progressPercent >= 80 ? "emerald" : "amber"}>Active Node</StatusChip>
+              <StatusChip tone={progressPercent >= 80 ? "emerald" : "amber"}>
+                Active Node
+              </StatusChip>
             </div>
             <h3 className="text-lg font-semibold mt-2 leading-snug">{selectedGoal?.title}</h3>
-            <p className="text-xs text-muted-foreground mt-1">{selectedGoal?.description || "No description provided."}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {selectedGoal?.description || "No description provided."}
+            </p>
 
             <div className="mt-5 grid grid-cols-2 gap-3">
-              <Tile label="Target Metric" value={`${selectedGoal?.target} (${selectedGoal?.uom})`} />
-              <Tile label="Observed Achieved" value={`${selectedGoal?.achieved} (${selectedGoal?.uom})`} accent="emerald" />
+              <Tile
+                label="Target Metric"
+                value={`${selectedGoal?.target} (${selectedGoal?.uom})`}
+              />
+              <Tile
+                label="Observed Achieved"
+                value={`${selectedGoal?.achieved} (${selectedGoal?.uom})`}
+                accent="emerald"
+              />
             </div>
 
             <div className="mt-5 glass-elevated p-4">
@@ -236,15 +268,21 @@ function CheckinPage() {
                 Performance Formula Trace
               </div>
               <div className="mt-2 font-mono-metric text-sm">
-                <span className="text-indigo-200">Score</span> = <span className="text-emerald-300">Observed</span> ÷ <span className="text-amber-200">Target</span>
+                <span className="text-indigo-200">Score</span> ={" "}
+                <span className="text-emerald-300">Observed</span> ÷{" "}
+                <span className="text-amber-200">Target</span>
               </div>
               <div className="mt-1 font-mono-metric text-sm text-white/80">
-                {selectedGoal?.achieved} / {selectedGoal?.target} = <span className="text-emerald-300">{progressPercent.toFixed(1)}%</span>
+                {selectedGoal?.achieved} / {selectedGoal?.target} ={" "}
+                <span className="text-emerald-300">{progressPercent.toFixed(1)}%</span>
               </div>
             </div>
 
             <div className="mt-5">
-              <ProgressBar value={progressPercent} tone={progressPercent >= 80 ? "emerald" : "amber"} />
+              <ProgressBar
+                value={progressPercent}
+                tone={progressPercent >= 80 ? "emerald" : "amber"}
+              />
               <div className="mt-2 text-xs text-muted-foreground font-mono-metric">
                 {progressPercent.toFixed(1)}% Baseline Completion Factor Mapped
               </div>
@@ -290,7 +328,8 @@ function CheckinPage() {
               <div className="mt-5 space-y-3 max-h-[220px] overflow-y-auto pr-1">
                 {selectedCheckins.length === 0 ? (
                   <div className="p-8 text-center text-xs text-muted-foreground font-mono-metric border border-dashed border-white/10 rounded-xl">
-                    No collaboration log thread for this objective yet. Use the submit console below to register progress.
+                    No collaboration log thread for this objective yet. Use the submit console below
+                    to register progress.
                   </div>
                 ) : (
                   selectedCheckins.map((c, i) => (
@@ -309,16 +348,21 @@ function CheckinPage() {
                       {c.remarks && (
                         <p className="text-xs text-muted-foreground italic">“ {c.remarks} ”</p>
                       )}
-                      
+
                       {c.evidenceLink && (
                         <div className="mt-2 flex items-center gap-1.5 text-xs text-indigo-300 hover:text-indigo-200">
                           <Paperclip className="h-3.5 w-3.5" />
-                          <a href={c.evidenceLink} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                          <a
+                            href={c.evidenceLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                          >
                             View Uploaded Evidence attachment
                           </a>
                         </div>
                       )}
-                      
+
                       {c.managerRemarks ? (
                         <div className="mt-3 pt-3 border-t border-white/5 space-y-1">
                           <div className="text-[9px] uppercase tracking-wider text-emerald-400 font-mono-metric">
@@ -352,7 +396,9 @@ function CheckinPage() {
               <form onSubmit={handleCommitCheckin} className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric mb-1">Actual Observed Achievement</label>
+                    <label className="block text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric mb-1">
+                      Actual Observed Achievement
+                    </label>
                     <input
                       type="number"
                       step="any"
@@ -364,7 +410,9 @@ function CheckinPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric mb-1">Objective Status</label>
+                    <label className="block text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric mb-1">
+                      Objective Status
+                    </label>
                     <span className="w-full block bg-slate-900 border border-white/5 text-muted-foreground rounded-lg p-2 text-xs font-mono-metric font-semibold">
                       {progressPercent >= 100 ? "Completed" : "On Track"}
                     </span>
@@ -387,12 +435,16 @@ function CheckinPage() {
                       <CheckCircle2 className="h-3.5 w-3.5" /> {checkinMessage}
                     </div>
                   )}
-                  <button 
+                  <button
                     type="submit"
                     disabled={submitting}
                     className="btn-primary text-xs py-2 px-3 ml-auto"
                   >
-                    {submitting ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />} 
+                    {submitting ? (
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Send className="h-3.5 w-3.5" />
+                    )}
                     Commit Progress Score
                   </button>
                 </div>
@@ -405,11 +457,23 @@ function CheckinPage() {
   );
 }
 
-function Tile({ label, value, accent = "indigo" }: { label: string; value: string; accent?: "indigo" | "emerald" }) {
+function Tile({
+  label,
+  value,
+  accent = "indigo",
+}: {
+  label: string;
+  value: string;
+  accent?: "indigo" | "emerald";
+}) {
   return (
     <div className="glass-elevated p-4">
-      <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono-metric">{label}</div>
-      <div className={`mt-1 text-2xl font-bold font-mono-metric ${accent === "emerald" ? "text-emerald-300" : "text-indigo-200"}`}>
+      <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono-metric">
+        {label}
+      </div>
+      <div
+        className={`mt-1 text-2xl font-bold font-mono-metric ${accent === "emerald" ? "text-emerald-300" : "text-indigo-200"}`}
+      >
         {value}
       </div>
     </div>

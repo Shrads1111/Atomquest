@@ -50,8 +50,9 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [pendingGoogleProfile, setPendingGoogleProfile] =
-    useState<PendingGoogleProfile | null>(null);
+  const [pendingGoogleProfile, setPendingGoogleProfile] = useState<PendingGoogleProfile | null>(
+    null,
+  );
   const pendingProfileUidRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -123,10 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!pendingGoogleProfile) {
         throw new Error("No Google sign-in in progress.");
       }
-      const profile = await completeGoogleProfileService(
-        pendingGoogleProfile.uid,
-        payload,
-      );
+      const profile = await completeGoogleProfileService(pendingGoogleProfile.uid, payload);
       pendingProfileUidRef.current = null;
       setPendingGoogleProfile(null);
       persistSession({ user: profile, rememberMe: true });

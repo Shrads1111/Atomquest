@@ -38,8 +38,10 @@ export async function getTeamCheckins(): Promise<Checkin[]> {
 
 export async function reviewCheckin(
   checkinId: string,
-  remarksOrPayload: string | { manager_remarks?: string; remarks?: string; manager_status?: string; status?: string },
-  status = "Met Expectations"
+  remarksOrPayload:
+    | string
+    | { manager_remarks?: string; remarks?: string; manager_status?: string; status?: string },
+  status = "Met Expectations",
 ): Promise<{ success: boolean }> {
   let finalRemarks = "";
   let finalStatus = status;
@@ -56,4 +58,3 @@ export async function reviewCheckin(
     status: finalStatus,
   });
 }
-

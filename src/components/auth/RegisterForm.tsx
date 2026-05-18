@@ -77,10 +77,7 @@ export function RegisterForm() {
 
   if (success) {
     return (
-      <RegisterSuccess
-        name={success.name}
-        onContinue={() => navigate({ to: success.path })}
-      />
+      <RegisterSuccess name={success.name} onContinue={() => navigate({ to: success.path })} />
     );
   }
 
@@ -92,7 +89,10 @@ export function RegisterForm() {
       transition={{ duration: 0.3 }}
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3.5 max-h-[52vh] overflow-y-auto pr-1 custom-scrollbar">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-3.5 max-h-[52vh] overflow-y-auto pr-1 custom-scrollbar"
+        >
           <FormField
             control={form.control}
             name="fullName"
@@ -104,7 +104,10 @@ export function RegisterForm() {
                 <FormControl>
                   <Input
                     placeholder="Aria Chen"
-                    className={cn("h-10 bg-background/60", fieldState.error && "border-destructive")}
+                    className={cn(
+                      "h-10 bg-background/60",
+                      fieldState.error && "border-destructive",
+                    )}
                     {...field}
                   />
                 </FormControl>
@@ -126,7 +129,10 @@ export function RegisterForm() {
                     <Input
                       type="email"
                       placeholder="aria@company.com"
-                      className={cn("h-10 bg-background/60", fieldState.error && "border-destructive")}
+                      className={cn(
+                        "h-10 bg-background/60",
+                        fieldState.error && "border-destructive",
+                      )}
                       {...field}
                     />
                   </FormControl>
@@ -145,7 +151,10 @@ export function RegisterForm() {
                   <FormControl>
                     <Input
                       placeholder="GS-10482"
-                      className={cn("h-10 bg-background/60 font-mono text-sm", fieldState.error && "border-destructive")}
+                      className={cn(
+                        "h-10 bg-background/60 font-mono text-sm",
+                        fieldState.error && "border-destructive",
+                      )}
                       {...field}
                     />
                   </FormControl>
