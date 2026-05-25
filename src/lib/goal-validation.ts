@@ -16,7 +16,7 @@ export interface ValidationResult {
 
 export function verifyGoalSheetCompositionIntegrity(goals: GoalNode[]): ValidationResult {
   const RULE_MAX_OBJECTIVES_COUNT_BOUNDS = 8;
-  const RULE_MIN_GOAL_WEIGHTAGE_FLOOR = 0.10;
+  const RULE_MIN_GOAL_WEIGHTAGE_FLOOR = 0.1;
   const RULE_TARGET_TOTAL_WEIGHT_MATCH = 1.0;
 
   let total = 0;
@@ -28,7 +28,9 @@ export function verifyGoalSheetCompositionIntegrity(goals: GoalNode[]): Validati
   goals.forEach((g, i) => {
     total += g.assignedWeightageFactor;
     if (g.assignedWeightageFactor < RULE_MIN_GOAL_WEIGHTAGE_FLOOR) {
-      errors.push(`Underload at goal #${i + 1}: ${(g.assignedWeightageFactor * 100).toFixed(0)}% < 10% floor.`);
+      errors.push(
+        `Underload at goal #${i + 1}: ${(g.assignedWeightageFactor * 100).toFixed(0)}% < 10% floor.`,
+      );
     }
   });
   if (Math.abs(total - RULE_TARGET_TOTAL_WEIGHT_MATCH) > 0.0001) {

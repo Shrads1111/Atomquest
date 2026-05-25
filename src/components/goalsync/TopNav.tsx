@@ -81,8 +81,7 @@ export function TopNav() {
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((n) => {
               const active =
-                loc.pathname === n.to ||
-                (n.to !== "/" && loc.pathname.startsWith(n.to));
+                loc.pathname === n.to || (n.to !== "/" && loc.pathname.startsWith(n.to));
               return (
                 <Link
                   key={n.to}
@@ -109,13 +108,8 @@ export function TopNav() {
               onClick={toggleTheme}
               aria-label="Toggle theme"
             >
-              {theme === "dark" ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
-
 
             <div className="hidden lg:flex items-center gap-2 chip chip-emerald">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-accent" />

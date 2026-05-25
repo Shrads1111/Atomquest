@@ -57,8 +57,14 @@ export async function saveGoalDraft(data: {
   return apiRequest<{ success: boolean; goal_id: string }>("/api/goals/draft", "POST", data);
 }
 
-export async function submitGoalSheet(sheetId: string, cycleId = "q3_2026"): Promise<{ success: boolean; sheet_id: string }> {
-  return apiRequest<{ success: boolean; sheet_id: string }>(`/api/goals/${sheetId}/submit?cycle_id=${cycleId}`, "POST");
+export async function submitGoalSheet(
+  sheetId: string,
+  cycleId = "q3_2026",
+): Promise<{ success: boolean; sheet_id: string }> {
+  return apiRequest<{ success: boolean; sheet_id: string }>(
+    `/api/goals/${sheetId}/submit?cycle_id=${cycleId}`,
+    "POST",
+  );
 }
 
 export async function pushSharedGoal(data: {
@@ -71,5 +77,9 @@ export async function pushSharedGoal(data: {
   goal_description?: string;
   cycle_id?: string;
 }): Promise<{ success: boolean; shared_goal_id: string }> {
-  return apiRequest<{ success: boolean; shared_goal_id: string }>("/api/goals/shared", "POST", data);
+  return apiRequest<{ success: boolean; shared_goal_id: string }>(
+    "/api/goals/shared",
+    "POST",
+    data,
+  );
 }

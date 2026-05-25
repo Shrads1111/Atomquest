@@ -53,11 +53,17 @@ export async function getCycleSettings(): Promise<CycleSettings> {
   return apiRequest<CycleSettings>("/api/cycles/current");
 }
 
-export async function modifyCycleSettings(phase: "setup" | "tracking" | "evaluation", status: "open" | "closed"): Promise<{ success: boolean }> {
+export async function modifyCycleSettings(
+  phase: "setup" | "tracking" | "evaluation",
+  status: "open" | "closed",
+): Promise<{ success: boolean }> {
   return apiRequest<{ success: boolean }>("/api/cycles", "POST", { phase, status });
 }
 
-export async function forceUnlockSheet(sheetId: string, rationale: string): Promise<{ success: boolean }> {
+export async function forceUnlockSheet(
+  sheetId: string,
+  rationale: string,
+): Promise<{ success: boolean }> {
   return apiRequest<{ success: boolean }>(`/api/goals/${sheetId}/unlock`, "POST", { rationale });
 }
 
@@ -69,12 +75,23 @@ export async function getActiveEscalations(): Promise<Escalation[]> {
   return apiRequest<Escalation[]>("/api/escalations");
 }
 
-export async function runComplianceScan(): Promise<{ success: boolean; escalationsTriggered: number }> {
-  return apiRequest<{ success: boolean; escalationsTriggered: number }>("/api/escalations/run", "POST");
+export async function runComplianceScan(): Promise<{
+  success: boolean;
+  escalationsTriggered: number;
+}> {
+  return apiRequest<{ success: boolean; escalationsTriggered: number }>(
+    "/api/escalations/run",
+    "POST",
+  );
 }
 
-export async function resolveEscalation(escalationId: string, notes: string): Promise<{ success: boolean }> {
-  return apiRequest<{ success: boolean }>(`/api/escalations/${escalationId}/resolve`, "POST", { notes });
+export async function resolveEscalation(
+  escalationId: string,
+  notes: string,
+): Promise<{ success: boolean }> {
+  return apiRequest<{ success: boolean }>(`/api/escalations/${escalationId}/resolve`, "POST", {
+    notes,
+  });
 }
 
 export async function getGlobalAnalytics(): Promise<AnalyticsSummary> {

@@ -63,11 +63,7 @@ export function SocialLoginButtons() {
           onClick={handleGoogle}
           disabled={googleLoading}
         >
-          {googleLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <GoogleIcon />
-          )}
+          {googleLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
           {googleLoading ? "Signing in…" : "Continue with Google"}
         </Button>
       </motion.div>

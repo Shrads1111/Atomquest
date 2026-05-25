@@ -1,13 +1,5 @@
 import { motion } from "framer-motion";
-import {
-  BarChart3,
-  CheckCircle2,
-  Lock,
-  Target,
-  TrendingUp,
-  Users,
-  Workflow,
-} from "lucide-react";
+import { BarChart3, CheckCircle2, Lock, Target, TrendingUp, Users, Workflow } from "lucide-react";
 import { Sparkline } from "@/components/goalsync/Sparkline";
 
 const STATS = [
@@ -62,8 +54,7 @@ export function AuthBrandingPanel() {
           transition={{ delay: 0.25 }}
         >
           <h2 className="text-3xl xl:text-4xl font-bold tracking-tight leading-tight max-w-md">
-            Align teams.{" "}
-            <span className="text-gradient-indigo">Track what matters.</span>
+            Align teams. <span className="text-gradient-indigo">Track what matters.</span>
           </h2>
           <p className="mt-3 text-muted-foreground max-w-md text-sm leading-relaxed">
             The modern OKR & performance platform for enterprises that run on clarity,

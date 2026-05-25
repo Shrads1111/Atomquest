@@ -1,7 +1,26 @@
 import { useState, useEffect } from "react";
-import { Bell, Check, Trash2, ShieldAlert, Award, Clock, AlertTriangle, Sparkles } from "lucide-react";
+import {
+  Bell,
+  Check,
+  Trash2,
+  ShieldAlert,
+  Award,
+  Clock,
+  AlertTriangle,
+  Sparkles,
+} from "lucide-react";
 import { getFirebaseDb } from "@/lib/firebase/config";
-import { collection, query, where, onSnapshot, updateDoc, doc, deleteDoc, orderBy, limit } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  updateDoc,
+  doc,
+  deleteDoc,
+  orderBy,
+  limit,
+} from "firebase/firestore";
 import { useAuth } from "@/contexts/auth-context";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -36,19 +55,23 @@ export function NotificationCenter() {
       collection(db, "notifications"),
       where("userId", "==", user.id),
       orderBy("ts", "desc"),
-      limit(25)
+      limit(25),
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const items = snapshot.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-      })) as NotificationItem[];
-      setNotifications(items);
-      setUnreadCount(items.filter((i) => !i.read).length);
-    }, (err) => {
-      console.warn("Notifications connection closed:", err);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const items = snapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        })) as NotificationItem[];
+        setNotifications(items);
+        setUnreadCount(items.filter((i) => !i.read).length);
+      },
+      (err) => {
+        console.warn("Notifications connection closed:", err);
+      },
+    );
 
     return () => unsubscribe();
   }, [user?.id]);
@@ -66,9 +89,7 @@ export function NotificationCenter() {
     try {
       const db = getFirebaseDb();
       const unread = notifications.filter((n) => !n.read);
-      const promises = unread.map((n) =>
-        updateDoc(doc(db, "notifications", n.id), { read: true })
-      );
+      const promises = unread.map((n) => updateDoc(doc(db, "notifications", n.id), { read: true }));
       await Promise.all(promises);
     } catch (err) {
       console.error("Failed to mark all as read:", err);
@@ -122,8 +143,11 @@ export function NotificationCenter() {
           )}
         </button>
       </DropdownMenuTrigger>
-      
-      <DropdownMenuContent align="end" className="w-80 p-0 border border-white/10 bg-slate-950/95 backdrop-blur-xl rounded-xl shadow-2xl shadow-black/60 overflow-hidden">
+
+      <DropdownMenuContent
+        align="end"
+        className="w-80 p-0 border border-white/10 bg-slate-950/95 backdrop-blur-xl rounded-xl shadow-2xl shadow-black/60 overflow-hidden"
+      >
         <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Sparkles className="h-4 w-4 text-indigo-400 animate-pulse" />
@@ -155,12 +179,8 @@ export function NotificationCenter() {
               >
                 <div className="mt-0.5 shrink-0">{getCategoryIcon(item.category)}</div>
                 <div className="flex-1 min-w-0 space-y-0.5">
-                  <div className="text-xs font-semibold text-white/95 truncate">
-                    {item.title}
-                  </div>
-                  <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    {item.body}
-                  </p>
+                  <div className="text-xs font-semibold text-white/95 truncate">{item.title}</div>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">{item.body}</p>
                   <div className="text-[9px] text-muted-foreground/60 font-mono-metric">
                     {item.ts}
                   </div>

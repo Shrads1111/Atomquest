@@ -44,7 +44,13 @@ export function TrendChart({
               stroke="rgba(255,255,255,0.05)"
               strokeDasharray="3 4"
             />
-            <text x={12} y={y + 3} fontSize="10" fill="rgba(255,255,255,0.5)" fontFamily="JetBrains Mono">
+            <text
+              x={12}
+              y={y + 3}
+              fontSize="10"
+              fill="rgba(255,255,255,0.5)"
+              fontFamily="JetBrains Mono"
+            >
               {g}%
             </text>
           </g>
@@ -80,7 +86,14 @@ export function TrendChart({
       {xs.map((x, i) => (
         <g key={i}>
           <circle cx={x} cy={ys[i]} r="3.5" fill="#10B981" />
-          <text x={x} y={H - 12} fontSize="10" fill="rgba(255,255,255,0.55)" textAnchor="middle" fontFamily="JetBrains Mono">
+          <text
+            x={x}
+            y={H - 12}
+            fontSize="10"
+            fill="rgba(255,255,255,0.55)"
+            textAnchor="middle"
+            fontFamily="JetBrains Mono"
+          >
             {data[i].week}
           </text>
         </g>

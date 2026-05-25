@@ -7,7 +7,8 @@ const MESSAGES: Record<string, string> = {
     "Firebase Authentication is not set up. Open Firebase Console → Authentication → Get started, then enable Email/Password.",
   "auth/operation-not-allowed":
     "Email/password sign-in is not enabled. Enable it in Firebase Console → Authentication → Sign-in method.",
-  "auth/weak-password": "Password is too weak. Use at least 8 characters with mixed case and numbers.",
+  "auth/weak-password":
+    "Password is too weak. Use at least 8 characters with mixed case and numbers.",
   "auth/user-disabled": "This account has been disabled. Contact your administrator.",
   "auth/user-not-found": "No account found with this email.",
   "auth/wrong-password": "Incorrect password. Please try again.",

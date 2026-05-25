@@ -1,7 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { GlassCard, MetricTile, StatusChip, ProgressBar } from "../../components/goalsync/Primitives";
-import { ChevronDown, Filter, Search, CheckCircle2, XCircle, Send, Users, Clock, RefreshCw, AlertCircle } from "lucide-react";
+import {
+  GlassCard,
+  MetricTile,
+  StatusChip,
+  ProgressBar,
+} from "../../components/goalsync/Primitives";
+import {
+  ChevronDown,
+  Filter,
+  Search,
+  CheckCircle2,
+  XCircle,
+  Send,
+  Users,
+  Clock,
+  RefreshCw,
+  AlertCircle,
+} from "lucide-react";
 import { requireRole } from "@/lib/auth/route-guards";
 import { getTeamMembers, getTeamGoalSheets, approveSheet, rejectSheet } from "@/services/manager";
 import { getTeamCheckins, reviewCheckin } from "@/services/checkins";
@@ -16,7 +32,10 @@ export const Route = createFileRoute("/_app/manager")({
   head: () => ({
     meta: [
       { title: "Team Governance — GoalSync" },
-      { name: "description", content: "Manager governance console for team performance and inline goal sheet overrides." },
+      {
+        name: "description",
+        content: "Manager governance console for team performance and inline goal sheet overrides.",
+      },
     ],
   }),
   component: ManagerPage,
@@ -36,16 +55,35 @@ function ManagerPage() {
   const [teamCheckins, setTeamCheckins] = useState<any[]>([]);
 
   // Online/Offline handling
-  const [isOnline, setIsOnline] = useState(typeof window !== "undefined" ? window.navigator.onLine : true);
+  const [isOnline, setIsOnline] = useState(
+    typeof window !== "undefined" ? window.navigator.onLine : true,
+  );
 
   // Shared Goals list
   const [sharedGoals, setSharedGoals] = useState<any[]>([
-    { id: "sg1", title: "Federalized AI Observability Cluster Integration", thrustArea: "Infrastructure System Reliability", weight: "15%", activeNodes: 6 },
-    { id: "sg2", title: "Global Latency Reduction Metrics under 20ms", thrustArea: "Operational Efficiency Optimization", weight: "10%", activeNodes: 6 }
+    {
+      id: "sg1",
+      title: "Federalized AI Observability Cluster Integration",
+      thrustArea: "Infrastructure System Reliability",
+      weight: "15%",
+      activeNodes: 6,
+    },
+    {
+      id: "sg2",
+      title: "Global Latency Reduction Metrics under 20ms",
+      thrustArea: "Operational Efficiency Optimization",
+      weight: "10%",
+      activeNodes: 6,
+    },
   ]);
 
   const [managerActivities, setManagerActivities] = useState<any[]>([
-    { id: 1, type: "governance", text: "Team metrics active on Google Cloud Firestore", time: "Just now" }
+    {
+      id: 1,
+      type: "governance",
+      text: "Team metrics active on Google Cloud Firestore",
+      time: "Just now",
+    },
   ]);
 
   // Shared goal push form
@@ -100,44 +138,55 @@ function ManagerPage() {
     loadReports();
 
     // 2. Subscribe to Team Sheets (Real-Time)
-    const qSheets = query(
-      collection(db, "goal_sheets"),
-      where("cycleId", "==", "q3_2026")
-    );
-    const unsubscribeSheets = onSnapshot(qSheets, (snapshot) => {
-      const sheets = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
-      setPendingApprovals(sheets);
+    const qSheets = query(collection(db, "goal_sheets"), where("cycleId", "==", "q3_2026"));
+    const unsubscribeSheets = onSnapshot(
+      qSheets,
+      (snapshot) => {
+        const sheets = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as any);
+        setPendingApprovals(sheets);
 
-      // Enhance direct reports dynamically with real-time sheet statuses!
-      if (rawMembers.length > 0) {
-        const enhancedMembers = rawMembers.map((member, idx) => {
-          const sheet = sheets.find(s => s.employeeId === member.uid);
-          return {
-            ...member,
-            uid: member.uid || `m-${idx}`,
-            goals: 3,
-            progress: sheet?.status === "Approved" ? 100 : 75,
-            state: sheet ? (sheet.status === "Approved" ? "approved" : sheet.status === "Rework" ? "action" : "pending") : "active"
-          };
-        });
-        setTeamState(enhancedMembers);
-      }
-      setLoading(false);
-    }, (err) => {
-      setError(`Real-time team sheets connection dropped: ${err.message}`);
-    });
+        // Enhance direct reports dynamically with real-time sheet statuses!
+        if (rawMembers.length > 0) {
+          const enhancedMembers = rawMembers.map((member, idx) => {
+            const sheet = sheets.find((s) => s.employeeId === member.uid);
+            return {
+              ...member,
+              uid: member.uid || `m-${idx}`,
+              goals: 3,
+              progress: sheet?.status === "Approved" ? 100 : 75,
+              state: sheet
+                ? sheet.status === "Approved"
+                  ? "approved"
+                  : sheet.status === "Rework"
+                    ? "action"
+                    : "pending"
+                : "active",
+            };
+          });
+          setTeamState(enhancedMembers);
+        }
+        setLoading(false);
+      },
+      (err) => {
+        setError(`Real-time team sheets connection dropped: ${err.message}`);
+      },
+    );
 
     // 3. Subscribe to Team Check-ins (Real-Time)
     const qCheckins = query(collection(db, "checkins"));
-    const unsubscribeCheckins = onSnapshot(qCheckins, (snapshot) => {
-      const allCheckins = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setTeamCheckins(allCheckins);
-      if (allCheckins.length > 0 && !selectedCheckinId) {
-        setSelectedCheckinId(allCheckins[0].id || "");
-      }
-    }, (err) => {
-      setError(`Real-time team check-ins connection dropped: ${err.message}`);
-    });
+    const unsubscribeCheckins = onSnapshot(
+      qCheckins,
+      (snapshot) => {
+        const allCheckins = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setTeamCheckins(allCheckins);
+        if (allCheckins.length > 0 && !selectedCheckinId) {
+          setSelectedCheckinId(allCheckins[0].id || "");
+        }
+      },
+      (err) => {
+        setError(`Real-time team check-ins connection dropped: ${err.message}`);
+      },
+    );
 
     return () => {
       unsubscribeSheets();
@@ -157,7 +206,7 @@ function ManagerPage() {
       setReviewMessage("");
       await reviewCheckin(selectedCheckinId, {
         manager_status: reviewStatus,
-        manager_remarks: structuredFeedback
+        manager_remarks: structuredFeedback,
       });
       setReviewMessage("Supervisor evaluation successfully published!");
       setStructuredFeedback("");
@@ -229,7 +278,7 @@ function ManagerPage() {
         uom_type: "percentage",
         target: 100,
         weightage: weightNum,
-        cycle_id: "q3_2026"
+        cycle_id: "q3_2026",
       });
 
       // Update local shared goals optimistically
@@ -238,7 +287,7 @@ function ManagerPage() {
         title: newSharedTitle,
         thrustArea: newSharedThrust,
         weight: `${newSharedWeight}%`,
-        activeNodes: memberIds.length
+        activeNodes: memberIds.length,
       };
       setSharedGoals((prev) => [...prev, newGoal]);
 
@@ -256,14 +305,18 @@ function ManagerPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
         <RefreshCw className="h-8 w-8 text-indigo-400 animate-spin" />
-        <div className="text-sm font-mono-metric text-indigo-200">Syncing Team Governance Console...</div>
+        <div className="text-sm font-mono-metric text-indigo-200">
+          Syncing Team Governance Console...
+        </div>
       </div>
     );
   }
 
   // Active counts mapping
-  const pendingApprovalsCount = pendingApprovals.filter(s => s.status === "Pending Review" || s.status === "Pending Approval").length;
-  const teamCheckinsCount = teamCheckins.filter(c => !c.managerRemarks).length;
+  const pendingApprovalsCount = pendingApprovals.filter(
+    (s) => s.status === "Pending Review" || s.status === "Pending Approval",
+  ).length;
+  const teamCheckinsCount = teamCheckins.filter((c) => !c.managerRemarks).length;
 
   return (
     <div className="space-y-8">
@@ -275,7 +328,8 @@ function ManagerPage() {
 
       {!isOnline && (
         <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs rounded-lg font-mono-metric flex items-center gap-1.5 animate-pulse">
-          <AlertCircle className="h-4 w-4" /> You are operating in offline mode. Dashboard syncing will resume when online.
+          <AlertCircle className="h-4 w-4" /> You are operating in offline mode. Dashboard syncing
+          will resume when online.
         </div>
       )}
 
@@ -288,25 +342,51 @@ function ManagerPage() {
       {/* Header */}
       <div className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300 font-mono-metric">Governance Console</div>
+          <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300 font-mono-metric">
+            Governance Console
+          </div>
           <h1 className="text-2xl font-bold mt-1">Squad Operations Monitor</h1>
         </div>
       </div>
 
       {/* Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricTile label="Active Reports" value={String(teamState.length || 6)} sub="Squad count" accent="indigo" />
-        <MetricTile label="Pending Goal Sheets" value={String(pendingApprovalsCount)} sub="Awaiting validation" accent={pendingApprovalsCount > 0 ? "amber" : "emerald"} />
-        <MetricTile label="Missed Check-ins" value={String(teamCheckinsCount)} sub="SLA alerts active" accent={teamCheckinsCount > 0 ? "crimson" : "emerald"} />
-        <MetricTile label="Shared OKRs" value={String(sharedGoals.length)} sub="Pushed directives" accent="indigo" />
+        <MetricTile
+          label="Active Reports"
+          value={String(teamState.length || 6)}
+          sub="Squad count"
+          accent="indigo"
+        />
+        <MetricTile
+          label="Pending Goal Sheets"
+          value={String(pendingApprovalsCount)}
+          sub="Awaiting validation"
+          accent={pendingApprovalsCount > 0 ? "amber" : "emerald"}
+        />
+        <MetricTile
+          label="Missed Check-ins"
+          value={String(teamCheckinsCount)}
+          sub="SLA alerts active"
+          accent={teamCheckinsCount > 0 ? "crimson" : "emerald"}
+        />
+        <MetricTile
+          label="Shared OKRs"
+          value={String(sharedGoals.length)}
+          sub="Pushed directives"
+          accent="indigo"
+        />
       </div>
 
       {/* Rework comments modal/drawer */}
       {reworkFeedbackId && (
         <GlassCard className="p-5 border border-rose-500/30 bg-rose-950/10 space-y-4 animate-in fade-in zoom-in-95 duration-200">
           <div>
-            <div className="text-[10px] uppercase tracking-[0.22em] text-rose-400 font-mono-metric">Governance action</div>
-            <h3 className="text-base font-bold mt-0.5 text-rose-300">Submit Rework Reason Commentaries</h3>
+            <div className="text-[10px] uppercase tracking-[0.22em] text-rose-400 font-mono-metric">
+              Governance action
+            </div>
+            <h3 className="text-base font-bold mt-0.5 text-rose-300">
+              Submit Rework Reason Commentaries
+            </h3>
           </div>
           <form onSubmit={handleReworkSubmit} className="space-y-3">
             <textarea
@@ -318,8 +398,20 @@ function ManagerPage() {
               className="w-full bg-slate-950 border border-rose-500/20 text-white rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-rose-500 focus:outline-none"
             />
             <div className="flex gap-2 justify-end">
-              <button type="button" onClick={() => setReworkFeedbackId(null)} className="btn-ghost text-xs py-1.5 px-3">Cancel</button>
-              <button type="submit" disabled={processingApproval} className="btn-primary bg-rose-500 hover:bg-rose-600 text-xs py-1.5 px-3">Publish Rework Redirect</button>
+              <button
+                type="button"
+                onClick={() => setReworkFeedbackId(null)}
+                className="btn-ghost text-xs py-1.5 px-3"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={processingApproval}
+                className="btn-primary bg-rose-500 hover:bg-rose-600 text-xs py-1.5 px-3"
+              >
+                Publish Rework Redirect
+              </button>
             </div>
           </form>
         </GlassCard>
@@ -331,7 +423,9 @@ function ManagerPage() {
           {/* Direct reports performance list */}
           <GlassCard className="overflow-hidden">
             <div className="px-5 py-4 border-b border-white/5">
-              <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300 font-mono-metric">Squad Performance Directory</div>
+              <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300 font-mono-metric">
+                Squad Performance Directory
+              </div>
               <h3 className="text-base font-bold mt-0.5">Active Direct Reports Performance</h3>
             </div>
             <div className="overflow-x-auto">
@@ -348,17 +442,34 @@ function ManagerPage() {
                   {teamState.map((member) => (
                     <tr key={member.uid} className="row-hover border-t border-white/5">
                       <td className="px-5 py-4 font-semibold text-white/95">{member.name}</td>
-                      <td className="px-5 py-4 text-xs text-indigo-300">{member.role || "Software Engineer"}</td>
+                      <td className="px-5 py-4 text-xs text-indigo-300">
+                        {member.role || "Software Engineer"}
+                      </td>
                       <td className="px-5 py-4 text-center">
-                        <StatusChip tone={member.state === 'approved' ? 'emerald' : member.state === 'action' ? 'crimson' : 'amber'}>
-                          {member.state === 'approved' ? 'Validated' : member.state === 'action' ? 'Rework' : 'Draft'}
+                        <StatusChip
+                          tone={
+                            member.state === "approved"
+                              ? "emerald"
+                              : member.state === "action"
+                                ? "crimson"
+                                : "amber"
+                          }
+                        >
+                          {member.state === "approved"
+                            ? "Validated"
+                            : member.state === "action"
+                              ? "Rework"
+                              : "Draft"}
                         </StatusChip>
                       </td>
                       <td className="px-5 py-4 text-right">
                         <div className="flex items-center justify-end gap-2 text-xs font-mono-metric">
                           <span className="text-indigo-200">{member.progress}%</span>
                           <div className="w-20">
-                            <ProgressBar value={member.progress} tone={member.progress >= 80 ? "emerald" : "indigo"} />
+                            <ProgressBar
+                              value={member.progress}
+                              tone={member.progress >= 80 ? "emerald" : "indigo"}
+                            />
                           </div>
                         </div>
                       </td>
@@ -372,44 +483,58 @@ function ManagerPage() {
           {/* Pending sheets validation console */}
           <GlassCard className="overflow-hidden">
             <div className="px-5 py-4 border-b border-white/5">
-              <div className="text-[10px] uppercase tracking-[0.22em] text-amber-300 font-mono-metric">Governance Validation Pool</div>
+              <div className="text-[10px] uppercase tracking-[0.22em] text-amber-300 font-mono-metric">
+                Governance Validation Pool
+              </div>
               <h3 className="text-base font-bold mt-0.5">Pending Sheets Review Pool</h3>
             </div>
             <div className="divide-y divide-white/5">
-              {pendingApprovals.filter(s => s.status === "Pending Review" || s.status === "Pending Approval").length === 0 ? (
+              {pendingApprovals.filter(
+                (s) => s.status === "Pending Review" || s.status === "Pending Approval",
+              ).length === 0 ? (
                 <div className="p-8 text-center text-xs text-muted-foreground font-mono-metric">
-                  ✓ Excellent: No pending goal sheet validations remaining. All direct reports sealed.
+                  ✓ Excellent: No pending goal sheet validations remaining. All direct reports
+                  sealed.
                 </div>
               ) : (
-                pendingApprovals.filter(s => s.status === "Pending Review" || s.status === "Pending Approval").map((s) => (
-                  <div key={s.id} className="p-5 flex items-center justify-between gap-4 flex-wrap hover:bg-white/1 transition-all">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-white/95">{s.employeeName || "Direct Report"}</span>
-                        <span className="text-[9px] uppercase tracking-wider text-amber-300 font-mono-metric bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                          {s.cycleId}
-                        </span>
+                pendingApprovals
+                  .filter((s) => s.status === "Pending Review" || s.status === "Pending Approval")
+                  .map((s) => (
+                    <div
+                      key={s.id}
+                      className="p-5 flex items-center justify-between gap-4 flex-wrap hover:bg-white/1 transition-all"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-white/95">
+                            {s.employeeName || "Direct Report"}
+                          </span>
+                          <span className="text-[9px] uppercase tracking-wider text-amber-300 font-mono-metric bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                            {s.cycleId}
+                          </span>
+                        </div>
+                        <div className="text-[10px] font-mono-metric text-indigo-300 mt-1">
+                          Total weight assigned: {s.totalWeightage || 100}%
+                        </div>
                       </div>
-                      <div className="text-[10px] font-mono-metric text-indigo-300 mt-1">Total weight assigned: {s.totalWeightage || 100}%</div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          disabled={processingApproval}
+                          onClick={() => handleReworkSubmit({ preventDefault: () => {} } as any)}
+                          className="btn-ghost border-rose-500/20 text-rose-400 hover:bg-rose-500/10 text-xs py-1.5 px-3"
+                        >
+                          <XCircle className="h-3.5 w-3.5" /> Return for Rework
+                        </button>
+                        <button
+                          disabled={processingApproval}
+                          onClick={() => handleDirectApprove(s.id)}
+                          className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Approve Sheet
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button 
-                        disabled={processingApproval}
-                        onClick={() => handleReworkSubmit({ preventDefault: () => {} } as any)}
-                        className="btn-ghost border-rose-500/20 text-rose-400 hover:bg-rose-500/10 text-xs py-1.5 px-3"
-                      >
-                        <XCircle className="h-3.5 w-3.5" /> Return for Rework
-                      </button>
-                      <button 
-                        disabled={processingApproval}
-                        onClick={() => handleDirectApprove(s.id)}
-                        className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1"
-                      >
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Approve Sheet
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  ))
               )}
             </div>
           </GlassCard>
@@ -420,7 +545,9 @@ function ManagerPage() {
           {/* Supervisor Check-in Review Module */}
           <GlassCard className="p-5 space-y-4">
             <div>
-              <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300 font-mono-metric">Supervisor Check-in Review</div>
+              <div className="text-[10px] uppercase tracking-[0.22em] text-indigo-300 font-mono-metric">
+                Supervisor Check-in Review
+              </div>
               <h3 className="text-base font-bold mt-0.5">Check-in Assessment Console</h3>
             </div>
 
@@ -431,7 +558,9 @@ function ManagerPage() {
             ) : (
               <form onSubmit={handleReviewSubmit} className="space-y-3.5">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric">Pending Check-in Node</label>
+                  <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric">
+                    Pending Check-in Node
+                  </label>
                   <select
                     value={selectedCheckinId}
                     onChange={(e) => setSelectedCheckinId(e.target.value)}
@@ -446,7 +575,9 @@ function ManagerPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric">Review Assessment Status</label>
+                  <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric">
+                    Review Assessment Status
+                  </label>
                   <select
                     value={reviewStatus}
                     onChange={(e) => setReviewStatus(e.target.value)}
@@ -459,7 +590,9 @@ function ManagerPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric">Evaluation remarks</label>
+                  <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric">
+                    Evaluation remarks
+                  </label>
                   <textarea
                     rows={2}
                     required
@@ -471,11 +604,13 @@ function ManagerPage() {
                 </div>
 
                 {reviewMessage && (
-                  <div className={`p-2 rounded text-[10px] font-mono-metric ${
-                    reviewMessage.startsWith("Review")
-                      ? "bg-red-500/10 border border-red-500/20 text-red-300"
-                      : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
-                  }`}>
+                  <div
+                    className={`p-2 rounded text-[10px] font-mono-metric ${
+                      reviewMessage.startsWith("Review")
+                        ? "bg-red-500/10 border border-red-500/20 text-red-300"
+                        : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
+                    }`}
+                  >
                     {reviewMessage}
                   </div>
                 )}
@@ -485,7 +620,11 @@ function ManagerPage() {
                   disabled={submittingReview}
                   className="w-full btn-primary text-xs py-2 px-3 justify-center flex items-center gap-1.5"
                 >
-                  {submittingReview ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  {submittingReview ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                   Submit Supervisor Signature
                 </button>
               </form>
@@ -495,13 +634,20 @@ function ManagerPage() {
           {/* Departmental KPI Broadcasting Center */}
           <GlassCard className="p-5 space-y-4">
             <div>
-              <div className="text-[10px] uppercase tracking-[0.22em] text-emerald-300 font-mono-metric">Shared Goal Broadcast</div>
+              <div className="text-[10px] uppercase tracking-[0.22em] text-emerald-300 font-mono-metric">
+                Shared Goal Broadcast
+              </div>
               <h3 className="text-base font-bold mt-0.5">Bulk Broadcaster</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Push a new objective and target metric instantly to all squad members' primary goal sheets.</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Push a new objective and target metric instantly to all squad members' primary goal
+                sheets.
+              </p>
             </div>
             <form onSubmit={handleSharedPush} className="space-y-3">
               <div className="space-y-1">
-                <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric">OKR Goal Title</label>
+                <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric">
+                  OKR Goal Title
+                </label>
                 <input
                   required
                   placeholder="e.g. Integrate federated metrics tracking"
@@ -512,7 +658,9 @@ function ManagerPage() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric">Thrust Area</label>
+                  <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric">
+                    Thrust Area
+                  </label>
                   <select
                     value={newSharedThrust}
                     onChange={(e) => setNewSharedThrust(e.target.value)}
@@ -524,7 +672,9 @@ function ManagerPage() {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric">Default Weight %</label>
+                  <label className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono-metric">
+                    Default Weight %
+                  </label>
                   <input
                     type="number"
                     required
@@ -537,11 +687,13 @@ function ManagerPage() {
               </div>
 
               {pushMessage && (
-                <div className={`p-2 rounded text-[10px] font-mono-metric ${
-                  pushMessage.startsWith("Broadcast")
-                    ? "bg-red-500/10 border border-red-500/20 text-red-300"
-                    : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
-                }`}>
+                <div
+                  className={`p-2 rounded text-[10px] font-mono-metric ${
+                    pushMessage.startsWith("Broadcast")
+                      ? "bg-red-500/10 border border-red-500/20 text-red-300"
+                      : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
+                  }`}
+                >
                   {pushMessage}
                 </div>
               )}
@@ -551,7 +703,11 @@ function ManagerPage() {
                 disabled={pushingGoal}
                 className="w-full btn-ghost text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10 text-xs py-2 px-3 justify-center flex items-center gap-1.5"
               >
-                {pushingGoal ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {pushingGoal ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
                 Push Shared Goal to Team
               </button>
             </form>

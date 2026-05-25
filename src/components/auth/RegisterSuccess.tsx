@@ -35,8 +35,8 @@ export function RegisterSuccess({ name, onContinue }: RegisterSuccessProps) {
 
       <h3 className="text-xl font-bold tracking-tight">Account created!</h3>
       <p className="mt-2 text-sm text-muted-foreground max-w-xs">
-        Welcome aboard, <span className="text-foreground font-medium">{name}</span>.
-        Your workspace is ready.
+        Welcome aboard, <span className="text-foreground font-medium">{name}</span>. Your workspace
+        is ready.
       </p>
 
       <motion.div

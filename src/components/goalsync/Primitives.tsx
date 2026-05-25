@@ -10,9 +10,7 @@ export function GlassCard({
   glow?: boolean;
 }) {
   return (
-    <div className={`glass-card ${glow ? "ring-indigo-glow" : ""} ${className}`}>
-      {children}
-    </div>
+    <div className={`glass-card ${glow ? "ring-indigo-glow" : ""} ${className}`}>{children}</div>
   );
 }
 
@@ -48,7 +46,9 @@ export function MetricTile({
       <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-mono-metric">
         {label}
       </div>
-      <div className={`mt-2 text-3xl font-bold ${mono ? "font-mono-metric" : ""} ${textMap[accent]}`}>
+      <div
+        className={`mt-2 text-3xl font-bold ${mono ? "font-mono-metric" : ""} ${textMap[accent]}`}
+      >
         {value}
       </div>
       {sub && <div className="mt-1.5 text-xs text-muted-foreground">{sub}</div>}
